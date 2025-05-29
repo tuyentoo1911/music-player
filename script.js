@@ -4,23 +4,76 @@ const $$ = document.querySelectorAll.bind(document)
 
 
 
-const songs = [
-    {
-        name: 'Song 1',
-        singer: 'Artist 1',
-        image: 'https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg',
-        audio: 'assets/audio/song1.mp3'
+const app = {
+    songs: [
+        {
+            name: 'Blue',
+            singer: 'yung kai',
+            image: 'assets/img/Song 1.jpeg',
+            music: 'assets/music/Song 1.mp3'
+        },
+        {
+            name: 'Cupid',
+            singer: 'FIFTY FIFTY (피프티피프티)',
+            image: 'assets/img/Song 2.jpeg',
+            music: 'assets/music/Song 2.mp3'
+        },
+        {
+            name: 'Trap Royalty',
+            singer: 'Singer 3',
+            image: 'assets/img/Song 3.jpeg',
+            music: 'assets/music/Song 3.mp3'
+        },
+        {
+            name: 'Supernatural ',
+            singer: 'Ariana Grande',
+            image: 'assets/img/Song 4.jpeg',
+            music: 'assets/music/Song 4.mp3'
+        },
+        {
+            name: 'End Of Beginning',
+            singer: 'Djo',
+            image: 'assets/img/Song 5.jpeg',
+            music: 'assets/music/Song 5.mp3'
+        }
+            
+    ],
+
+    render: function() {
+        const htmls = this.songs.map(song => {
+            return `
+            <div class="song">
+                <div class="thumb" style="background-image: url('${song.image}')">
+                </div>
+                <div class="body">
+                    <h3 class="title">${song.name}</h3>
+                    <p class="author">${song.singer}</p>
+                </div>
+                <div class="option">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+            </div>
+            `
+        })
+        $('.playlist').innerHTML = htmls.join('');
     },
-    {
-        name: 'Song 2',
-        singer: 'Artist 2',
-        image: 'https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg', 
-        audio: 'assets/audio/song2.mp3'
+
+    handleEvent: function() {
+        const cd = $('.cd');
+        const cdWidth = cd.offsetWidth;
+        document.onscroll = function() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const newcdWidth = cdWidth - scrollTop;
+
+        cd.style.width = newcdWidth + 'px';
+       }
     },
-    {
-        name: 'Song 3',
-        singer: 'Artist 3',
-        image: 'https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg',
-        audio: 'assets/audio/song3.mp3'
+    start: function() {
+        this.render();
+        this.handleEvent();
     }
-]
+
+}
+
+app.start();
+    
