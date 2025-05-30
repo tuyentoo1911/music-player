@@ -9,9 +9,11 @@ const player = $('.player');
 const progress = $('#progress');
 const nextBTN = $('.btn-next');
 const prevBTN = $('.btn-prev');
+const randomBTN = $('.btn-random');
 const app = {
     currentIndex: 0,
     isPlaying: false,
+    isRandom: false,
     songs: [
         {
             name: 'Blue',
@@ -140,23 +142,58 @@ const app = {
                 audio.play();
                 
                 // Highlight bài hát đang phát
-                $$('.song').forEach(s => s.classList.remove('active'));
-                song.classList.add('active');
+                app.highlightCurrentSong();
+                
+                // Hiệu ứng click tạm thời
+                song.style.transform = 'scale(0.95)';
+                song.style.transition = 'transform 0.1s ease';
+                setTimeout(() => {
+                    song.style.transform = 'scale(1)';
+                }, 100);
             }
         });
 
         // xử lý khi click vào nút next
         nextBTN.onclick = function() {
-            _this.nextSong();
-            audio.play();
+            if(_this.isRandom) {    
+                _this.randomSong();
+                audio.play();
+            } else {
+                _this.nextSong();
+                audio.play();
+            }
+            // Hiệu ứng tạm thời
+            nextBTN.classList.add('active');
+            setTimeout(() => nextBTN.classList.remove('active'), 200);
         }
         // xử lý khi click vào nút prev
         prevBTN.onclick = function() {
-            _this.prevSong();
-            audio.play();
+            if(_this.isRandom) {
+                _this.randomSong();
+                audio.play();
+            } else {
+                _this.prevSong();
+                audio.play();
+            }
+            // Hiệu ứng tạm thời
+            prevBTN.classList.add('active');
+            setTimeout(() => prevBTN.classList.remove('active'), 200);
         }
-        
-        
+        // xử lý khi click vào nút random
+        randomBTN.onclick = function() {
+            _this.isRandom = !_this.isRandom;
+            randomBTN.classList.toggle('active', _this.isRandom);
+        }
+        // xủ lý khi random song
+        audio.onended = function() {
+            if(_this.isRandom) {
+                _this.randomSong();
+                audio.play();
+            } else {
+                _this.nextSong();
+                audio.play();
+            }
+        }
         
     },
     loadCurrentSong: function() {
@@ -173,6 +210,8 @@ const app = {
             this.currentIndex = 0;
         }
         this.loadCurrentSong();
+        // Highlight ô nhạc tương ứng
+        this.highlightCurrentSong();
     },
     //prev song
     prevSong: function() {
@@ -181,6 +220,29 @@ const app = {
             this.currentIndex = this.songs.length - 1;
         }
         this.loadCurrentSong();
+        // Highlight ô nhạc tương ứng
+        this.highlightCurrentSong();
+    },
+    //random song
+    randomSong: function() {
+        let randomIndex
+        do {
+            randomIndex = Math.floor(Math.random() * this.songs.length);
+        } while (randomIndex === this.currentIndex);
+        this.currentIndex = randomIndex;
+        this.loadCurrentSong();
+        // Highlight ô nhạc tương ứng
+        this.highlightCurrentSong();
+    },
+    // Highlight bài hát hiện tại trong playlist
+    highlightCurrentSong: function() {
+        $$('.song').forEach((song, index) => {
+            if (index === this.currentIndex) {
+                song.classList.add('active');
+            } else {
+                song.classList.remove('active');
+            }
+        });
     },
     start: function() {
         this.defineProperties();
