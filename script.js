@@ -1,10 +1,16 @@
 const $ = document.querySelector.bind(document)
 const $$ = document.querySelectorAll.bind(document)
-
-
-
+const header = $('header h2');
+const cdthumb = $('.cd-thumb');
+const audio = $('#audio');
+const cd = $('.cd');
+const playBTN = $('.btn-toggle-play');
+const player = $('.player');
+const progress = $('#progress');
 
 const app = {
+    currentIndex: 0,
+    isPlaying: false,
     songs: [
         {
             name: 'Blue',
@@ -35,7 +41,8 @@ const app = {
             singer: 'Djo',
             image: 'assets/img/Song 5.jpeg',
             music: 'assets/music/Song 5.mp3'
-        }
+        },
+      
             
     ],
 
@@ -57,20 +64,74 @@ const app = {
         })
         $('.playlist').innerHTML = htmls.join('');
     },
-
+    defineProperties: function() {
+        Object.defineProperty(this, 'currentSong', {
+            get: function() {
+                return this.songs[this.currentIndex];
+            }
+        });
+    },
     handleEvent: function() {
-        const cd = $('.cd');
+        const _this = this;
         const cdWidth = cd.offsetWidth;
+        //xử lý phóng to cd
         document.onscroll = function() {
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
         const newcdWidth = cdWidth - scrollTop;
 
-        cd.style.width = newcdWidth + 'px';
+        cd.style.width = newcdWidth > 0 ? newcdWidth + 'px' : 0;
+        cd.style.opacity = newcdWidth / cdWidth;
+       }
+       // xử lý khi click vào playlist
+       playBTN.onclick = function() { 
+            if(_this.isPlaying) {
+                audio.pause();
+                player.classList.remove('playing');
+                _this.isPlaying = false;
+            } else {
+                audio.play();
+                player.classList.add('playing');
+                _this.isPlaying = true;
+            }
+       }
+       // khi song đang phát
+       audio.onplay = function() {
+        _this.isPlaying = true;
+        player.classList.add('playing');
+       }
+       // khi song đang tạm dừng
+       audio.onpause = function() {
+        _this.isPlaying = false;
+        player.classList.remove('playing');
+       }
+       //khi tiến độ bài hát thay đổi
+       audio.ontimeupdate = function() {
+        if(audio.duration) {
+            const progressPercent = Math.floor(audio.currentTime / audio.duration * 100);
+            progress.value = progressPercent;
+        }
+        //khi click tua bài hát
+        progress.onchange = function() {
+            const seekTime = (progress.value / 100) * audio.duration;
+            audio.currentTime = seekTime;
+        }
+        
        }
     },
+    loadCurrentSong: function() {
+
+        header.textContent = this.currentSong.name;
+        cdthumb.style.backgroundImage = '';
+        cdthumb.style.backgroundImage = `url('${this.currentSong.image}')`;
+        audio.src = this.currentSong.music;
+
+        
+    },
     start: function() {
+        this.defineProperties();
         this.render();
         this.handleEvent();
+        this.loadCurrentSong();
     }
 
 }
