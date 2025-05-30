@@ -7,7 +7,8 @@ const cd = $('.cd');
 const playBTN = $('.btn-toggle-play');
 const player = $('.player');
 const progress = $('#progress');
-
+const nextBTN = $('.btn-next');
+const prevBTN = $('.btn-prev');
 const app = {
     currentIndex: 0,
     isPlaying: false,
@@ -20,7 +21,7 @@ const app = {
         },
         {
             name: 'Cupid',
-            singer: 'FIFTY FIFTY (피프티피프티)',
+            singer: 'FIFTY FIFTY (피프티프티)',
             image: 'assets/img/Song 2.jpeg',
             music: 'assets/music/Song 2.mp3'
         },
@@ -74,6 +75,15 @@ const app = {
     handleEvent: function() {
         const _this = this;
         const cdWidth = cd.offsetWidth;
+        //xử lý CD quay / dừng
+        const cdThumbAnimation = cdthumb.animate({
+            transform: 'rotate(360deg)'
+        }, {
+            duration: 10000,
+            iterations: Infinity,
+            direction: 'normal'
+        });
+        cdThumbAnimation.pause();
         //xử lý phóng to cd
         document.onscroll = function() {
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -98,11 +108,13 @@ const app = {
        audio.onplay = function() {
         _this.isPlaying = true;
         player.classList.add('playing');
+        cdThumbAnimation.play();
        }
        // khi song đang tạm dừng
        audio.onpause = function() {
         _this.isPlaying = false;
         player.classList.remove('playing');
+        cdThumbAnimation.pause();
        }
        //khi tiến độ bài hát thay đổi
        audio.ontimeupdate = function() {
@@ -116,7 +128,36 @@ const app = {
             audio.currentTime = seekTime;
         }
         
+
+        
        }
+
+        // xử lý khi click vào song trong playlist
+        $$('.song').forEach((song, index) => {
+            song.onclick = function() {
+                app.currentIndex = index;
+                app.loadCurrentSong();
+                audio.play();
+                
+                // Highlight bài hát đang phát
+                $$('.song').forEach(s => s.classList.remove('active'));
+                song.classList.add('active');
+            }
+        });
+
+        // xử lý khi click vào nút next
+        nextBTN.onclick = function() {
+            _this.nextSong();
+            audio.play();
+        }
+        // xử lý khi click vào nút prev
+        prevBTN.onclick = function() {
+            _this.prevSong();
+            audio.play();
+        }
+        
+        
+        
     },
     loadCurrentSong: function() {
 
@@ -124,8 +165,22 @@ const app = {
         cdthumb.style.backgroundImage = '';
         cdthumb.style.backgroundImage = `url('${this.currentSong.image}')`;
         audio.src = this.currentSong.music;
-
-        
+    },
+    //next song
+    nextSong: function() {
+        this.currentIndex++;
+        if(this.currentIndex >= this.songs.length) {
+            this.currentIndex = 0;
+        }
+        this.loadCurrentSong();
+    },
+    //prev song
+    prevSong: function() {
+        this.currentIndex--;
+        if(this.currentIndex < 0) {
+            this.currentIndex = this.songs.length - 1;
+        }
+        this.loadCurrentSong();
     },
     start: function() {
         this.defineProperties();
@@ -133,6 +188,7 @@ const app = {
         this.handleEvent();
         this.loadCurrentSong();
     }
+
 
 }
 
