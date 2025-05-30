@@ -293,8 +293,16 @@ header h2 {
 .waveform-section {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   margin-bottom: 15px;
+  flex-direction: column;
+}
+
+.waveform-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .song-play-btn {
@@ -310,6 +318,7 @@ header h2 {
   cursor: pointer;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  font-size: 14px;
 }
 
 .song-play-btn:hover {
@@ -320,29 +329,59 @@ header h2 {
 .waveform-container {
   flex: 1;
   height: 40px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
+  background: transparent;
+  border-radius: 4px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
-.waveform-progress {
+.waveform-visual {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-color) 30%, transparent 30%);
-  border-radius: 20px;
   position: relative;
 }
 
+/* WaveSurfer custom styling */
+.waveform-visual wave {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.waveform-visual wave canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 4px;
+}
+
+/* Remove the old waveform bar styles since we're using WaveSurfer */
+.waveform-bar,
+.waveform-bar.played,
+.waveform-bar.active {
+  display: none;
+}
+
+.waveform-progress {
+  display: none;
+}
+
+/* Remove old hover effects for bars */
+.waveform-container:hover .waveform-bar,
+.waveform-container:hover .waveform-bar.played,
+.waveform-container:hover .waveform-bar.active,
+.waveform-bar:hover {
+  display: none;
+}
+
 .waveform-time {
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: var(--text-primary);
+  font-size: 11px;
+  color: var(--text-secondary);
   font-weight: 500;
-  z-index: 2;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  margin-top: 5px;
 }
 
 .song-tags {
@@ -634,8 +673,22 @@ body.bottom-player-active {
     gap: 10px;
   }
 
+  .waveform-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .waveform-container {
+    width: 100%;
+  }
+
   .song-info {
     text-align: center;
+  }
+
+  .waveform-time {
+    font-size: 11px;
+    margin-top: 5px;
   }
 }
 

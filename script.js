@@ -14,36 +14,42 @@ const app = {
     currentIndex: 0,
     isPlaying: false,
     isRandom: false,
+    wavesurfers: [], // Array to store WaveSurfer instances
     songs: [
         {
             name: 'Blue',
             singer: 'yung kai',
             image: 'assets/img/Song 1.jpeg',
-            music: 'assets/music/Song 1.mp3'
+            music: 'assets/music/Song 1.mp3',
+            duration: '03:24'
         },
         {
             name: 'Cupid',
             singer: 'FIFTY FIFTY (피프티프티)',
             image: 'assets/img/Song 2.jpeg',
-            music: 'assets/music/Song 2.mp3'
+            music: 'assets/music/Song 2.mp3',
+            duration: '02:54'
         },
         {
             name: 'Trap Royalty',
             singer: 'Singer 3',
             image: 'assets/img/Song 3.jpeg',
-            music: 'assets/music/Song 3.mp3'
+            music: 'assets/music/Song 3.mp3',
+            duration: '03:15'
         },
         {
             name: 'Supernatural ',
             singer: 'Ariana Grande',
             image: 'assets/img/Song 4.jpeg',
-            music: 'assets/music/Song 4.mp3'
+            music: 'assets/music/Song 4.mp3',
+            duration: '03:07'
         },
         {
             name: 'End Of Beginning',
             singer: 'Djo',
             image: 'assets/img/Song 5.jpeg',
-            music: 'assets/music/Song 5.mp3'
+            music: 'assets/music/Song 5.mp3',
+            duration: '04:19'
         },
       
             
@@ -78,13 +84,16 @@ const app = {
                 </div>
                 
                 <div class="waveform-section">
-                    <button class="song-play-btn">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <div class="waveform-container">
-                        <div class="waveform-progress"></div>
-                        <div class="waveform-time">00:00-${this.getRandomDuration()}</div>
+                    <div class="waveform-controls">
+                        <button class="song-play-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="waveform-container">
+                            <div class="waveform-visual" id="waveform-${index}">
+                            </div>
+                        </div>
                     </div>
+                    <div class="waveform-time">00:00-${song.duration}</div>
                 </div>
                 
                 <div class="song-tags">
@@ -98,6 +107,83 @@ const app = {
         $('.playlist').innerHTML = $('.playlist').innerHTML.split('<!-- Song cards')[0] + 
                                    '<!-- Song cards will be rendered here by JavaScript -->\n' + 
                                    htmls.join('');
+        
+        // Initialize event listeners after rendering
+        this.initializeEventListeners();
+    },
+
+    // Initialize event listeners for song cards
+    initializeEventListeners: function() {
+        const _this = this;
+        
+        // Clear existing wavesurfers
+        this.wavesurfers.forEach(ws => {
+            if (ws) ws.destroy();
+        });
+        this.wavesurfers = [];
+        
+        // xử lý khi click vào song trong playlist
+        $$('.song-card').forEach((songCard, index) => {
+            const playBtn = songCard.querySelector('.song-play-btn');
+            const waveformVisual = songCard.querySelector('.waveform-visual');
+            
+            // Tạo WaveSurfer cho bài này
+            if (waveformVisual) {
+                const wavesurfer = this.createWaveSurfer(index, waveformVisual);
+                this.wavesurfers[index] = wavesurfer;
+            }
+            
+            // Click vào play button
+            const playHandler = (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                
+                if (_this.currentIndex === index) {
+                    // Nếu là bài hiện tại
+                    if (_this.isPlaying) {
+                        audio.pause();
+                    } else {
+                        // Đảm bảo audio có thể phát
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.log('Audio play failed:', error);
+                                // Reset UI state nếu play thất bại
+                                _this.isPlaying = false;
+                                _this.highlightCurrentSong();
+                            });
+                        }
+                    }
+                } else {
+                    // Chuyển sang bài khác
+                    _this.currentIndex = index;
+                    _this.loadCurrentSong();
+                    
+                    // Đợi một chút để audio load xong
+                    setTimeout(() => {
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.log('Audio play failed:', error);
+                                _this.isPlaying = false;
+                                _this.highlightCurrentSong();
+                            });
+                        }
+                    }, 100);
+                }
+                
+                // Hiệu ứng click tạm thời
+                songCard.style.transform = 'scale(0.98)';
+                songCard.style.transition = 'transform 0.1s ease';
+                setTimeout(() => {
+                    songCard.style.transform = 'scale(1)';
+                }, 100);
+            };
+            
+            // Attach event listeners
+            if (playBtn) {
+                playBtn.addEventListener('click', playHandler);
+            }
+        });
     },
 
     // Tạo thời gian ngẫu nhiên
@@ -106,6 +192,26 @@ const app = {
         const seconds = Math.floor(Math.random() * 60);
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     },
+
+    // Lấy thời gian thực tế từ audio file
+    updateSongDurations: function() {
+        const _this = this;
+        this.songs.forEach((song, index) => {
+            const tempAudio = new Audio(song.music);
+            tempAudio.addEventListener('loadedmetadata', function() {
+                const duration = _this.formatTime(tempAudio.duration);
+                // Cập nhật duration trong song object
+                _this.songs[index].duration = duration;
+                
+                // Cập nhật hiển thị trên UI
+                const waveformTime = document.querySelector(`[data-index="${index}"] .waveform-time`);
+                if (waveformTime) {
+                    waveformTime.textContent = `00:00-${duration}`;
+                }
+            });
+        });
+    },
+
     defineProperties: function() {
         Object.defineProperty(this, 'currentSong', {
             get: function() {
@@ -113,6 +219,7 @@ const app = {
             }
         });
     },
+    
     handleEvent: function() {
         const _this = this;
         const cdWidth = cd.offsetWidth;
@@ -150,12 +257,16 @@ const app = {
        playBTN.onclick = function() { 
             if(_this.isPlaying) {
                 audio.pause();
-                player.classList.remove('playing');
-                _this.isPlaying = false;
             } else {
-                audio.play();
-                player.classList.add('playing');
-                _this.isPlaying = true;
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('Audio play failed:', error);
+                        // Reset state nếu không thể phát
+                        _this.isPlaying = false;
+                        player.classList.remove('playing');
+                    });
+                }
             }
        }
        // khi song đang phát
@@ -164,6 +275,7 @@ const app = {
         player.classList.add('playing');
         cdThumbAnimation.play();
         _this.updateBottomPlayerIcon();
+        _this.highlightCurrentSong();
        }
        // khi song đang tạm dừng
        audio.onpause = function() {
@@ -171,6 +283,7 @@ const app = {
         player.classList.remove('playing');
         cdThumbAnimation.pause();
         _this.updateBottomPlayerIcon();
+        _this.highlightCurrentSong();
        }
        //khi tiến độ bài hát thay đổi
        audio.ontimeupdate = function() {
@@ -180,6 +293,12 @@ const app = {
             
             // Cập nhật bottom player
             _this.updateBottomPlayerTime();
+            
+            // Cập nhật waveform của bài hát hiện tại
+            _this.updateCurrentWaveform();
+            
+            // Sync audio state để đảm bảo UI đúng
+            _this.syncAudioState();
         }
         //khi click tua bài hát
         progress.onchange = function() {
@@ -187,32 +306,6 @@ const app = {
             audio.currentTime = seekTime;
         }
        }
-        // xử lý khi click vào song trong playlist
-        $$('.song-card').forEach((songCard, index) => {
-            const playBtn = songCard.querySelector('.song-play-btn');
-            const waveformContainer = songCard.querySelector('.waveform-container');
-            
-            // Click vào play button hoặc waveform
-            const playHandler = () => {
-                app.currentIndex = index;
-                app.loadCurrentSong();
-                audio.play();
-                
-                // Highlight bài hát đang phát
-                app.highlightCurrentSong();
-                
-                // Hiệu ứng click tạm thời
-                songCard.style.transform = 'scale(0.98)';
-                songCard.style.transition = 'transform 0.1s ease';
-                setTimeout(() => {
-                    songCard.style.transform = 'scale(1)';
-                }, 100);
-            };
-            
-            if (playBtn) playBtn.onclick = playHandler;
-            if (waveformContainer) waveformContainer.onclick = playHandler;
-        });
-
         // xử lý khi click vào nút next
         nextBTN.onclick = function() {
             if(_this.isRandom) {    
@@ -265,16 +358,51 @@ const app = {
             }
         }
         
+        // xử lý khi audio bị lỗi
+        audio.onerror = function() {
+            console.log('Audio error occurred');
+            _this.isPlaying = false;
+            player.classList.remove('playing');
+            _this.highlightCurrentSong();
+            _this.updateBottomPlayerIcon();
+        }
+        
+        // xử lý khi audio không thể load
+        audio.onloadstart = function() {
+            _this.isPlaying = false;
+            player.classList.remove('playing');
+            _this.highlightCurrentSong();
+        }
+        
+        // xử lý khi audio đã sẵn sàng phát
+        audio.oncanplay = function() {
+            console.log('Audio ready to play');
+        }
+        
+        // xử lý khi click tua bài hát
+        progress.onchange = function() {
+            const seekTime = (progress.value / 100) * audio.duration;
+            audio.currentTime = seekTime;
+        }
     },
     loadCurrentSong: function() {
+        // Reset tất cả waveforms trước khi load bài mới
+        this.resetAllWaveforms();
 
         header.textContent = this.currentSong.name;
         cdthumb.style.backgroundImage = '';
         cdthumb.style.backgroundImage = `url('${this.currentSong.image}')`;
         audio.src = this.currentSong.music;
 
+        // Reset audio state
+        this.isPlaying = false;
+        player.classList.remove('playing');
+
         // Cập nhật bottom player
         this.updateBottomPlayer();
+        
+        // Cập nhật UI
+        this.highlightCurrentSong();
     },
     //next song
     nextSong: function() {
@@ -310,10 +438,22 @@ const app = {
     // Highlight bài hát hiện tại trong playlist
     highlightCurrentSong: function() {
         $$('.song-card').forEach((songCard, index) => {
+            const playBtn = songCard.querySelector('.song-play-btn i');
+            
+            if (!playBtn) return; // Skip if button not found
+            
             if (index === this.currentIndex) {
                 songCard.classList.add('active');
+                // Cập nhật icon play/pause
+                if (this.isPlaying) {
+                    playBtn.className = 'fas fa-pause';
+                } else {
+                    playBtn.className = 'fas fa-play';
+                }
             } else {
                 songCard.classList.remove('active');
+                // Reset icon về play
+                playBtn.className = 'fas fa-play';
             }
         });
     },
@@ -324,6 +464,9 @@ const app = {
         this.loadCurrentSong();
         this.connectBottomPlayer();
         this.dashboard = $('.dashboard');
+        
+        // Cập nhật thời gian thực tế từ audio files
+        this.updateSongDurations();
     },
 
     // Cập nhật bottom player
@@ -454,6 +597,145 @@ const app = {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    },
+
+    // Cập nhật thời gian hiển thị trên waveform
+    updateWaveformTime: function(songIndex, currentTime, duration) {
+        const waveformTime = document.querySelector(`[data-index="${songIndex}"] .waveform-time`);
+        if (waveformTime && duration) {
+            const current = this.formatTime(currentTime);
+            const total = this.formatTime(duration);
+            waveformTime.textContent = `${current}-${total}`;
+        }
+    },
+
+    // Cập nhật waveform progress cho bài hát hiện tại
+    updateCurrentWaveform: function() {
+        if (audio.duration && this.wavesurfers[this.currentIndex]) {
+            const progressPercent = audio.currentTime / audio.duration;
+            const wavesurfer = this.wavesurfers[this.currentIndex];
+            
+            // Sync WaveSurfer với audio progress
+            if (wavesurfer && !wavesurfer.isPlaying()) {
+                wavesurfer.seekTo(progressPercent);
+            }
+            
+            // Cập nhật thời gian hiển thị
+            this.updateWaveformTime(this.currentIndex, audio.currentTime, audio.duration);
+        }
+    },
+
+    // Reset waveform của tất cả bài hát
+    resetAllWaveforms: function() {
+        this.wavesurfers.forEach((wavesurfer, index) => {
+            if (wavesurfer) {
+                wavesurfer.seekTo(0);
+                if (wavesurfer.isPlaying()) {
+                    wavesurfer.pause();
+                }
+            }
+        });
+        
+        // Reset thời gian hiển thị về 00:00-duration cho tất cả bài
+        this.songs.forEach((song, index) => {
+            this.updateWaveformTime(index, 0, this.parseDuration(song.duration));
+        });
+    },
+
+    // Chuyển đổi duration string thành seconds
+    parseDuration: function(durationStr) {
+        const parts = durationStr.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    },
+
+    // Tạo WaveSurfer instance cho mỗi bài hát
+    createWaveSurfer: function(songIndex, container) {
+        const _this = this;
+        const song = this.songs[songIndex];
+        
+        if (!song || !container) return null;
+        
+        const wavesurfer = WaveSurfer.create({
+            container: container,
+            waveColor: 'rgba(255, 255, 255, 0.3)',
+            progressColor: '#ec1f55',
+            cursorColor: '#ff6b9d',
+            barWidth: 2,
+            barGap: 1,
+            barRadius: 1,
+            responsive: true,
+            height: 40,
+            normalize: true,
+            backend: 'WebAudio',
+            interact: true
+        });
+        
+        // Load audio file
+        wavesurfer.load(song.music);
+        
+        // Handle click to seek
+        wavesurfer.on('click', function(progress) {
+            _this.handleWaveSurferClick(songIndex, progress, wavesurfer);
+        });
+        
+        // Update progress for current song
+        wavesurfer.on('audioprocess', function() {
+            if (songIndex === _this.currentIndex) {
+                _this.updateWaveformTime(songIndex, wavesurfer.getCurrentTime(), wavesurfer.getDuration());
+            }
+        });
+        
+        wavesurfer.on('ready', function() {
+            console.log(`WaveSurfer ready for song ${songIndex}`);
+        });
+        
+        return wavesurfer;
+    },
+
+    // Xử lý click trên WaveSurfer
+    handleWaveSurferClick: function(songIndex, progress, wavesurfer) {
+        // Nếu là bài đang phát
+        if (songIndex === this.currentIndex) {
+            const seekTime = progress * audio.duration;
+            audio.currentTime = seekTime;
+            // Sync WaveSurfer với audio element
+            const audioProgress = audio.currentTime / audio.duration;
+            wavesurfer.seekTo(audioProgress);
+        } else {
+            // Chuyển sang bài này và seek
+            this.currentIndex = songIndex;
+            this.loadCurrentSong();
+            
+            setTimeout(() => {
+                if (audio.duration) {
+                    const seekTime = progress * audio.duration;
+                    audio.currentTime = seekTime;
+                    wavesurfer.seekTo(progress);
+                }
+                audio.play();
+                this.highlightCurrentSong();
+            }, 100);
+        }
+    },
+
+    // Debug và sync audio state
+    syncAudioState: function() {
+        // Kiểm tra state thực tế của audio
+        const actuallyPlaying = !audio.paused && !audio.ended && audio.currentTime > 0 && audio.readyState > 2;
+        
+        if (actuallyPlaying !== this.isPlaying) {
+            console.log('State mismatch detected. Fixing...');
+            this.isPlaying = actuallyPlaying;
+            
+            if (actuallyPlaying) {
+                player.classList.add('playing');
+            } else {
+                player.classList.remove('playing');
+            }
+            
+            this.highlightCurrentSong();
+            this.updateBottomPlayerIcon();
+        }
     },
 }
 
