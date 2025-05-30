@@ -46,17 +46,63 @@
 
   <!-- Playlist -->
   <div class="playlist">
-    <div class="song">
-      <div class="thumb" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
+    <div class="playlist-header">Now Playing</div>
+    
+    <!-- Song cards will be rendered here by JavaScript -->
+  </div>
+</div>
+
+<!-- Bottom Player Bar -->
+<div class="bottom-player" id="bottom-player">
+  <!-- Song Info -->
+  <div class="player-song-info">
+    <div class="player-artwork" id="player-artwork"></div>
+    <div class="player-text">
+      <div class="player-title" id="player-title">Girly Girl Productions — Girly secret</div>
+      <div class="player-artist" id="player-artist">Sheeza</div>
+    </div>
+  </div>
+
+  <!-- Player Controls -->
+  <div class="player-controls">
+    <div class="control-buttons">
+      <button class="control-btn" id="prev-btn">
+        <i class="fas fa-step-backward"></i>
+      </button>
+      <button class="control-btn play-btn" id="play-btn">
+        <i class="fas fa-play"></i>
+      </button>
+      <button class="control-btn" id="next-btn">
+        <i class="fas fa-step-forward"></i>
+      </button>
+    </div>
+    
+    <div class="progress-section">
+      <span class="time-display" id="current-time">00:24</span>
+      <div class="progress-bar" id="bottom-progress">
+        <div class="progress-fill">
+          <div class="progress-handle"></div>
+        </div>
       </div>
-      <div class="body">
-        <h3 class="title">Music name</h3>
-        <p class="author">Singer</p>
-      </div>
-      <div class="option">
-        <i class="fas fa-ellipsis-h"></i>
+      <span class="time-display" id="total-time">02:07</span>
+    </div>
+  </div>
+
+  <!-- Player Actions -->
+  <div class="player-actions">
+    <div class="volume-control">
+      <button class="control-btn">
+        <i class="fas fa-volume-up"></i>
+      </button>
+      <div class="volume-slider">
+        <div class="volume-fill"></div>
       </div>
     </div>
+    
+    <button class="quality-btn">HIGH-QUALITY</button>
+    <button class="close-btn" id="close-bottom-player">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
 </div>
 
