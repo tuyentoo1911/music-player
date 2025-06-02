@@ -14,7 +14,9 @@ const app = {
     currentIndex: 0,
     isPlaying: false,
     isRandom: false,
+    isRepeat: false,
     wavesurfers: [], // Array to store WaveSurfer instances
+    currentBackgroundIndex: 1, // Track which background is currently active
     songs: [
         {
             name: 'Blue',
@@ -401,6 +403,9 @@ const app = {
         // Cập nhật bottom player
         this.updateBottomPlayer();
         
+        // Cập nhật background
+        this.updateBackground();
+        
         // Cập nhật UI
         this.highlightCurrentSong();
     },
@@ -467,6 +472,11 @@ const app = {
         
         // Cập nhật thời gian thực tế từ audio files
         this.updateSongDurations();
+        
+        // Initialize background on startup
+        setTimeout(() => {
+            this.updateBackground();
+        }, 500);
     },
 
     // Cập nhật bottom player
@@ -736,6 +746,38 @@ const app = {
             this.highlightCurrentSong();
             this.updateBottomPlayerIcon();
         }
+    },
+
+    // Cập nhật background với hình ảnh bài hát hiện tại
+    updateBackground: function() {
+        if (!this.currentSong || !this.currentSong.image) return;
+        
+        // Toggle between background images for cross-fade
+        const currentBg = document.getElementById(`background-image-${this.currentBackgroundIndex}`);
+        const nextIndex = this.currentBackgroundIndex === 1 ? 2 : 1;
+        const nextBg = document.getElementById(`background-image-${nextIndex}`);
+        
+        if (!currentBg || !nextBg) return;
+        
+        // Preload the new image
+        const img = new Image();
+        img.onload = () => {
+            // Set new image to the inactive background
+            nextBg.style.backgroundImage = `url('${this.currentSong.image}')`;
+            
+            if (!currentBg.classList.contains('active')) {
+                // First time - just show the first background
+                currentBg.classList.add('active');
+            } else {
+                // Cross-fade: show next background, hide current
+                nextBg.classList.add('active');
+                setTimeout(() => {
+                    currentBg.classList.remove('active');
+                    this.currentBackgroundIndex = nextIndex;
+                }, 600); // Wait for transition to complete
+            }
+        };
+        img.src = this.currentSong.image;
     },
 }
 

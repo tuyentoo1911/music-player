@@ -4,109 +4,251 @@
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/sidebar.css">
 <script src="https://unpkg.com/wavesurfer.js@7"></script>
-<div class="player">
-  <!-- Dashboard -->
-  <div class="dashboard">
-    <!-- Header -->
-    <header>
-      <h4>Now playing:</h4>
-      <h2>String 57th & 9th</h2>
-    </header>
 
-    <!-- CD -->
-    <div class="cd">
-      <div class="cd-thumb" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
-      </div>
-    </div>
-
-    <!-- Control -->
-    <div class="control">
-      <div class="btn btn-repeat">
-        <i class="fas fa-redo"></i>
-      </div>
-      <div class="btn btn-prev">
-        <i class="fas fa-step-backward"></i>
-      </div>
-      <div class="btn btn-toggle-play">
-        <i class="fas fa-pause icon-pause"></i>
-        <i class="fas fa-play icon-play"></i>
-      </div>
-      <div class="btn btn-next">
-        <i class="fas fa-step-forward"></i>
-      </div>
-      <div class="btn btn-random">
-        <i class="fas fa-random"></i>
-      </div>
-    </div>
-
-    <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
-
-    <audio id="audio" src=""></audio>
-  </div>
-
-  <!-- Playlist -->
-  <div class="playlist">
-    <div class="playlist-header">Now Playing</div>
-    
-    <!-- Song cards will be rendered here by JavaScript -->
-  </div>
+<!-- Dynamic Background -->
+<div class="dynamic-background" id="dynamic-background">
+  <div class="background-image" id="background-image-1"></div>
+  <div class="background-image" id="background-image-2"></div>
+  <div class="background-overlay"></div>
 </div>
 
-<!-- Bottom Player Bar -->
-<div class="bottom-player" id="bottom-player">
-  <!-- Song Info -->
-  <div class="player-song-info">
-    <div class="player-artwork" id="player-artwork"></div>
-    <div class="player-text">
-      <div class="player-title" id="player-title">Girly Girl Productions — Girly secret</div>
-      <div class="player-artist" id="player-artist">Sheeza</div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <!-- Logo & Authentication -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fas fa-music"></i>
+      <span>SoundWave</span>
+    </div>
+    <div class="auth-section">
+      <button class="auth-btn login-btn" id="login-btn">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Đăng nhập</span>
+      </button>
+      <button class="auth-btn signup-btn" id="signup-btn">
+        <i class="fas fa-user-plus"></i>
+        <span>Đăng ký</span>
+      </button>
     </div>
   </div>
-
-  <!-- Player Controls -->
-  <div class="player-controls">
-    <div class="control-buttons">
-      <button class="control-btn" id="prev-btn">
-        <i class="fas fa-step-backward"></i>
-      </button>
-      <button class="control-btn play-btn" id="play-btn">
-        <i class="fas fa-play"></i>
-      </button>
-      <button class="control-btn" id="next-btn">
-        <i class="fas fa-step-forward"></i>
-      </button>
+  
+  <!-- Main Navigation -->
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <h3 class="nav-section-title">Khám phá</h3>
+      <a href="#" class="nav-item active">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-search"></i>
+        <span>Tìm kiếm</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-chart-line"></i>
+        <span>BXH</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-fire"></i>
+        <span>Thịnh hành</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-star"></i>
+        <span>Mới phát hành</span>
+      </a>
     </div>
     
-    <div class="progress-section">
-      <span class="time-display" id="current-time">00:24</span>
-      <div class="progress-bar" id="bottom-progress">
-        <div class="progress-fill">
-          <div class="progress-handle"></div>
+    <div class="nav-section">
+      <h3 class="nav-section-title">Thư viện</h3>
+      <a href="#" class="nav-item">
+        <i class="fas fa-heart"></i>
+        <span>Yêu thích</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-download"></i>
+        <span>Đã tải</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-history"></i>
+        <span>Nghe gần đây</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-list"></i>
+        <span>Playlist</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-users"></i>
+        <span>Nghệ sĩ</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-compact-disc"></i>
+        <span>Album</span>
+      </a>
+    </div>
+    
+    <div class="nav-section">
+      <h3 class="nav-section-title">Radio</h3>
+      <a href="#" class="nav-item">
+        <i class="fas fa-broadcast-tower"></i>
+        <span>Radio Live</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-podcast"></i>
+        <span>Podcast</span>
+      </a>
+    </div>
+    
+    <div class="nav-section">
+      <h3 class="nav-section-title">Cá nhân</h3>
+      <a href="#" class="nav-item">
+        <i class="fas fa-user"></i>
+        <span>Hồ sơ</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Cài đặt</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-crown"></i>
+        <span>Nâng cấp VIP</span>
+      </a>
+    </div>
+  </nav>
+  
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="premium-card">
+      <div class="premium-icon">
+        <i class="fas fa-gem"></i>
+      </div>
+      <div class="premium-text">
+        <h4>Nâng cấp Premium</h4>
+        <p>Nghe nhạc không quảng cáo</p>
+      </div>
+      <button class="premium-btn">Nâng cấp</button>
+    </div>
+  </div>
+  
+  <!-- Sidebar Toggle -->
+  <button class="sidebar-toggle" id="sidebar-toggle">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+</div>
+
+<!-- Mobile Menu Toggle -->
+<button class="menu-toggle" id="menu-toggle">
+  <i class="fas fa-bars"></i>
+</button>
+
+<div class="main-content">
+  <div class="player">
+    <!-- Dashboard -->
+    <div class="dashboard">
+      <!-- Header -->
+      <header>
+        <h4>Now playing:</h4>
+        <h2>String 57th & 9th</h2>
+      </header>
+
+      <!-- CD -->
+      <div class="cd">
+        <div class="cd-thumb" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
         </div>
       </div>
-      <span class="time-display" id="total-time">02:07</span>
+
+      <!-- Control -->
+      <div class="control">
+        <div class="btn btn-repeat">
+          <i class="fas fa-redo"></i>
+        </div>
+        <div class="btn btn-prev">
+          <i class="fas fa-step-backward"></i>
+        </div>
+        <div class="btn btn-toggle-play">
+          <i class="fas fa-pause icon-pause"></i>
+          <i class="fas fa-play icon-play"></i>
+        </div>
+        <div class="btn btn-next">
+          <i class="fas fa-step-forward"></i>
+        </div>
+        <div class="btn btn-random">
+          <i class="fas fa-random"></i>
+        </div>
+      </div>
+
+      <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
+
+      <audio id="audio" src=""></audio>
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist">
+      <div class="playlist-header">Now Playing</div>
+      
+      <!-- Song cards will be rendered here by JavaScript -->
     </div>
   </div>
 
-  <!-- Player Actions -->
-  <div class="player-actions">
-    <div class="volume-control">
-      <button class="control-btn">
-        <i class="fas fa-volume-up"></i>
-      </button>
-      <div class="volume-slider">
-        <div class="volume-fill"></div>
+  <!-- Bottom Player Bar -->
+  <div class="bottom-player" id="bottom-player">
+    <!-- Song Info -->
+    <div class="player-song-info">
+      <div class="player-artwork" id="player-artwork"></div>
+      <div class="player-text">
+        <div class="player-title" id="player-title">Girly Girl Productions — Girly secret</div>
+        <div class="player-artist" id="player-artist">Sheeza</div>
       </div>
     </div>
-    
-    <button class="quality-btn">HIGH-QUALITY</button>
-    <button class="close-btn" id="close-bottom-player">
-      <i class="fas fa-times"></i>
-    </button>
+
+    <!-- Player Controls -->
+    <div class="player-controls">
+      <div class="control-buttons">
+        <button class="control-btn" id="prev-btn">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="control-btn play-btn" id="play-btn">
+          <i class="fas fa-play"></i>
+        </button>
+        <button class="control-btn" id="next-btn">
+          <i class="fas fa-step-forward"></i>
+        </button>
+      </div>
+      
+      <div class="progress-section">
+        <span class="time-display" id="current-time">00:24</span>
+        <div class="progress-bar" id="bottom-progress">
+          <div class="progress-fill">
+            <div class="progress-handle"></div>
+          </div>
+        </div>
+        <span class="time-display" id="total-time">02:07</span>
+      </div>
+    </div>
+
+    <!-- Player Actions -->
+    <div class="player-actions">
+      <div class="volume-control">
+        <button class="control-btn">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <div class="volume-slider">
+          <div class="volume-fill"></div>
+        </div>
+      </div>
+      
+      <button class="quality-btn">HIGH-QUALITY</button>
+      <button class="close-btn" id="close-bottom-player">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
   </div>
 </div>
 
-<script src="script.js">
-  
-</script>
+<!-- Scripts -->
+<script src="assets/js/sidebar.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
