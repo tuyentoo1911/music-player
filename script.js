@@ -219,6 +219,9 @@ const app = {
     render: function() {
         const htmls = this.songs.map((song, index) => {
             const isFirst = index === 0;
+            const isFavorite = this.checkIfSongIsLiked(song);
+            const isUserUploaded = song.dbType === 'uploaded' || song.type === 'uploaded';
+            
             return `
             <div class="song-card" data-index="${index}">
                 <div class="song-header">
@@ -243,15 +246,15 @@ const app = {
                                 <i class="fas fa-ellipsis-h"></i>
                             </button>
                             <div class="song-dropdown" id="song-dropdown-${index}">
-                                <div class="dropdown-item song-favorite-btn" data-song-index="${index}">
-                                    <i class="fas fa-heart"></i>
-                                    <span>Yêu thích</span>
+                                <div class="dropdown-item song-favorite-btn ${isFavorite ? 'active' : ''}" data-song-index="${index}">
+                                    <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                                    <span>${isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}</span>
                                 </div>
                                 <div class="dropdown-item song-add-playlist-btn" data-song-index="${index}">
                                     <i class="fas fa-plus"></i>
                                     <span>Thêm vào playlist</span>
                                 </div>
-                                ${song.dbType === 'uploaded' || song.type === 'uploaded' ? `
+                                ${isUserUploaded ? `
                                 <div class="dropdown-item song-delete-btn" data-song-index="${index}">
                                     <i class="fas fa-trash"></i>
                                     <span>Xóa bài hát</span>
@@ -278,6 +281,8 @@ const app = {
                     <span class="song-tag">Music</span>
                     ${index === 1 ? '<span class="song-tag">pop</span>' : ''}
                     ${index === 2 ? '<span class="song-tag">Podcast</span>' : ''}
+                    ${isFavorite ? '<span class="song-tag favorite"><i class="fas fa-heart"></i> Yêu thích</span>' : ''}
+                    ${isUserUploaded ? '<span class="song-tag user-upload"><i class="fas fa-user"></i> Bài hát của bạn</span>' : ''}
                 </div>
             </div>
             `
@@ -400,6 +405,15 @@ const app = {
             });
         });
 
+        // Song add to playlist buttons
+        $$('.song-add-playlist-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const songIndex = parseInt(btn.dataset.songIndex);
+                _this.addSongToPlaylist(songIndex);
+            });
+        });
+
         // Song delete buttons
         $$('.song-delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -441,11 +455,13 @@ const app = {
         if (!song) return;
 
         try {
-            if (musicDB && song.dbId) {
+            let isFavorite = false;
+            
+            // Check current favorite status
+            if (this.isDatabaseOperational() && song.dbId) {
                 const songId = song.dbId;
                 const songType = song.dbType || 'original';
-                
-                const isFavorite = await musicDB.isSongFavorite(songId, songType);
+                isFavorite = await musicDB.isSongFavorite(songId, songType);
                 
                 if (isFavorite) {
                     await musicDB.removeFromFavorites(songId, songType);
@@ -454,15 +470,322 @@ const app = {
                     await musicDB.addToFavorites(songId, songType);
                     showNotification('💖 Đã thêm vào yêu thích!', 'success');
                 }
+            } else {
+                // Fallback to localStorage
+                isFavorite = this.checkIfSongIsLiked(song);
+                
+                if (isFavorite) {
+                    this.removeFromFavorites(song);
+                    showNotification('💔 Đã xóa khỏi yêu thích!', 'info');
+                } else {
+                    this.addToFavorites(song);
+                    showNotification('💖 Đã thêm vào yêu thích!', 'success');
+                }
             }
+            
+            // Update dropdown icon based on new status
+            this.updateFavoriteButtonInDropdown(songIndex);
             
             // Close dropdown
             this.toggleSongDropdown(songIndex);
             
+            // Update dashboard like button if this is the current song
+            if (songIndex === this.currentIndex && typeof updateLikeButton === 'function') {
+                setTimeout(updateLikeButton, 100);
+            }
+            
         } catch (error) {
             console.error('Error toggling favorite:', error);
-            showNotification('❌ Có lỗi xảy ra!', 'error');
+            showNotification('❌ Có lỗi xảy ra khi thao tác yêu thích!', 'error');
         }
+    },
+
+    // Add song to playlist functionality
+    addSongToPlaylist: function(songIndex) {
+        const song = this.songs[songIndex];
+        if (!song) return;
+
+        // Close dropdown
+        this.toggleSongDropdown(songIndex);
+
+        // Show playlist selection modal
+        this.showPlaylistModal(song, songIndex);
+    },
+
+    // Show playlist selection modal
+    showPlaylistModal: function(song, songIndex) {
+        const playlistModal = document.createElement('div');
+        playlistModal.className = 'playlist-modal-overlay';
+        playlistModal.innerHTML = `
+            <div class="playlist-modal">
+                <div class="playlist-modal-header">
+                    <h3>Thêm vào Playlist</h3>
+                    <button class="close-playlist-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="playlist-modal-body">
+                    <div class="song-info-mini">
+                        <img src="${song.image}" alt="${song.name}">
+                        <div>
+                            <strong>${song.name}</strong>
+                            <span>${song.singer}</span>
+                        </div>
+                    </div>
+                    <div class="playlist-options">
+                        <div class="create-new-playlist">
+                            <button class="create-playlist-btn">
+                                <i class="fas fa-plus"></i>
+                                <span>Tạo playlist mới</span>
+                            </button>
+                        </div>
+                        <div class="existing-playlists">
+                            <div class="playlist-item" data-playlist="favorites">
+                                <i class="fas fa-heart"></i>
+                                <span>Yêu thích</span>
+                                <button class="add-to-playlist-btn" data-playlist="favorites">Thêm</button>
+                            </div>
+                            <div class="playlist-item" data-playlist="recently-played">
+                                <i class="fas fa-history"></i>
+                                <span>Phát gần đây</span>
+                                <button class="add-to-playlist-btn" data-playlist="recently-played">Thêm</button>
+                            </div>
+                            <div class="playlist-item" data-playlist="my-music">
+                                <i class="fas fa-music"></i>
+                                <span>Nhạc của tôi</span>
+                                <button class="add-to-playlist-btn" data-playlist="my-music">Thêm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(playlistModal);
+        setTimeout(() => playlistModal.classList.add('show'), 100);
+
+        // Handle close button
+        const closeBtn = playlistModal.querySelector('.close-playlist-modal');
+        closeBtn.addEventListener('click', () => {
+            this.closePlaylistModal(playlistModal);
+        });
+
+        // Handle create new playlist
+        const createBtn = playlistModal.querySelector('.create-playlist-btn');
+        createBtn.addEventListener('click', () => {
+            this.createNewPlaylist(song);
+            this.closePlaylistModal(playlistModal);
+        });
+
+        // Handle add to existing playlist buttons
+        $$('.add-to-playlist-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const playlistType = btn.dataset.playlist;
+                this.addToExistingPlaylist(song, playlistType);
+                this.closePlaylistModal(playlistModal);
+            });
+        });
+
+        // Close on overlay click
+        playlistModal.addEventListener('click', (e) => {
+            if (e.target === playlistModal) {
+                this.closePlaylistModal(playlistModal);
+            }
+        });
+    },
+
+    // Close playlist modal
+    closePlaylistModal: function(modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    },
+
+    // Create new playlist
+    createNewPlaylist: function(song) {
+        const playlistName = prompt('Nhập tên playlist mới:');
+        if (playlistName && playlistName.trim()) {
+            try {
+                // Get existing playlists from localStorage
+                let playlists = JSON.parse(localStorage.getItem('userPlaylists') || '{}');
+                
+                // Create new playlist if it doesn't exist
+                if (!playlists[playlistName]) {
+                    playlists[playlistName] = [];
+                }
+                
+                // Add song to playlist
+                const songExists = playlists[playlistName].some(s => 
+                    s.name === song.name && s.singer === song.singer
+                );
+                
+                if (!songExists) {
+                    playlists[playlistName].push({
+                        name: song.name,
+                        singer: song.singer,
+                        image: song.image,
+                        music: song.music,
+                        duration: song.duration,
+                        dbId: song.dbId,
+                        dbType: song.dbType
+                    });
+                    
+                    localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+                    showNotification(`🎵 Đã thêm "${song.name}" vào playlist "${playlistName}"!`, 'success');
+                } else {
+                    showNotification(`ℹ️ Bài hát đã có trong playlist "${playlistName}"!`, 'info');
+                }
+            } catch (error) {
+                console.error('Error creating playlist:', error);
+                showNotification('❌ Có lỗi khi tạo playlist!', 'error');
+            }
+        }
+    },
+
+    // Add to existing playlist
+    addToExistingPlaylist: function(song, playlistType) {
+        try {
+            let message = '';
+            
+            switch (playlistType) {
+                case 'favorites':
+                    this.addToFavorites(song);
+                    message = `💖 Đã thêm "${song.name}" vào yêu thích!`;
+                    break;
+                    
+                case 'recently-played':
+                    this.addToRecentlyPlayed(song);
+                    message = `🕐 Đã thêm "${song.name}" vào phát gần đây!`;
+                    break;
+                    
+                case 'my-music':
+                    this.addToMyMusic(song);
+                    message = `🎵 Đã thêm "${song.name}" vào nhạc của tôi!`;
+                    break;
+                    
+                default:
+                    message = `✅ Đã thêm "${song.name}" vào playlist!`;
+            }
+            
+            showNotification(message, 'success');
+        } catch (error) {
+            console.error('Error adding to playlist:', error);
+            showNotification('❌ Có lỗi khi thêm vào playlist!', 'error');
+        }
+    },
+
+    // Add to recently played
+    addToRecentlyPlayed: function(song) {
+        let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
+        
+        // Remove if already exists
+        recentlyPlayed = recentlyPlayed.filter(s => 
+            !(s.name === song.name && s.singer === song.singer)
+        );
+        
+        // Add to beginning
+        recentlyPlayed.unshift({
+            name: song.name,
+            singer: song.singer,
+            image: song.image,
+            music: song.music,
+            duration: song.duration,
+            dbId: song.dbId,
+            dbType: song.dbType,
+            playedAt: new Date().toISOString()
+        });
+        
+        // Keep only last 50 songs
+        if (recentlyPlayed.length > 50) {
+            recentlyPlayed = recentlyPlayed.slice(0, 50);
+        }
+        
+        localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+    },
+
+    // Add to my music
+    addToMyMusic: function(song) {
+        let myMusic = JSON.parse(localStorage.getItem('myMusic') || '[]');
+        
+        // Check if already exists
+        const exists = myMusic.some(s => s.name === song.name && s.singer === song.singer);
+        
+        if (!exists) {
+            myMusic.push({
+                name: song.name,
+                singer: song.singer,
+                image: song.image,
+                music: song.music,
+                duration: song.duration,
+                dbId: song.dbId,
+                dbType: song.dbType,
+                addedAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('myMusic', JSON.stringify(myMusic));
+        }
+    },
+
+    // Update favorite button icon in dropdown
+    updateFavoriteButtonInDropdown: function(songIndex) {
+        const song = this.songs[songIndex];
+        if (!song) return;
+        
+        const favoriteBtn = document.querySelector(`#song-dropdown-${songIndex} .song-favorite-btn`);
+        if (!favoriteBtn) return;
+        
+        const isLiked = this.checkIfSongIsLiked(song);
+        const icon = favoriteBtn.querySelector('i');
+        const text = favoriteBtn.querySelector('span');
+        
+        if (isLiked) {
+            icon.className = 'fas fa-heart';
+            text.textContent = 'Bỏ yêu thích';
+            favoriteBtn.classList.add('active');
+        } else {
+            icon.className = 'far fa-heart';
+            text.textContent = 'Yêu thích';
+            favoriteBtn.classList.remove('active');
+        }
+    },
+
+    // Helper functions for favorites (localStorage fallback)
+    addToFavorites: function(song) {
+        let favorites = JSON.parse(localStorage.getItem('favoriteSongs')) || [];
+        
+        // Check if already exists
+        const exists = favorites.some(fav => fav.name === song.name && fav.singer === song.singer);
+        
+        if (!exists) {
+            favorites.push({
+                name: song.name,
+                singer: song.singer,
+                image: song.image,
+                music: song.music,
+                duration: song.duration,
+                category: song.category,
+                dbId: song.dbId,
+                dbType: song.dbType,
+                addedAt: new Date().toISOString()
+            });
+            localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
+        }
+    },
+
+    // Remove from favorites
+    removeFromFavorites: function(song) {
+        let favorites = JSON.parse(localStorage.getItem('favoriteSongs')) || [];
+        favorites = favorites.filter(fav => !(fav.name === song.name && fav.singer === song.singer));
+        localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
+    },
+
+    // Check if song is in favorites
+    checkIfSongIsLiked: function(song) {
+        const favorites = JSON.parse(localStorage.getItem('favoriteSongs')) || [];
+        return favorites.some(fav => fav.name === song.name && fav.singer === song.singer);
     },
 
     // Confirm delete song
@@ -1904,7 +2227,17 @@ function addToFavorites(song) {
     const exists = favorites.some(fav => fav.name === song.name && fav.singer === song.singer);
     
     if (!exists) {
-        favorites.push(song);
+        favorites.push({
+            name: song.name,
+            singer: song.singer,
+            image: song.image,
+            music: song.music,
+            duration: song.duration,
+            category: song.category,
+            dbId: song.dbId,
+            dbType: song.dbType,
+            addedAt: new Date().toISOString()
+        });
         localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
     }
 }
@@ -1916,13 +2249,14 @@ function removeFromFavorites(song) {
 }
 
 function checkIfSongIsLiked(song) {
+    if (!song) return false;
     const favorites = JSON.parse(localStorage.getItem('favoriteSongs')) || [];
     return favorites.some(fav => fav.name === song.name && fav.singer === song.singer);
 }
 
 // Update like button when song changes
 function updateLikeButton() {
-    if (app.currentSong) {
+    if (app.currentSong && likeSongBtn) {
         isCurrentSongLiked = checkIfSongIsLiked(app.currentSong);
         
         if (isCurrentSongLiked) {
@@ -2029,8 +2363,60 @@ function testSwitchSong(songIndex) {
     console.log('After switch - currentIndex:', app.currentIndex);
 }
 
+// Test dropdown functionality
+function testDropdownFunctions(songIndex = 0) {
+    console.log('=== Testing Dropdown Functions ===');
+    const song = app.songs[songIndex];
+    if (!song) {
+        console.error('Song not found at index:', songIndex);
+        return;
+    }
+    
+    console.log('Testing with song:', {
+        index: songIndex,
+        name: song.name,
+        singer: song.singer,
+        type: song.dbType || song.type,
+        isFavorite: app.checkIfSongIsLiked(song)
+    });
+    
+    // Test favorite toggle
+    console.log('Testing favorite toggle...');
+    app.toggleSongFavorite(songIndex);
+    
+    // Test playlist functionality
+    console.log('Testing playlist functionality...');
+    app.addSongToPlaylist(songIndex);
+}
+
+// Test playlist storage
+function testPlaylistStorage() {
+    console.log('=== Testing Playlist Storage ===');
+    
+    // Check localStorage data
+    const favorites = JSON.parse(localStorage.getItem('favoriteSongs') || '[]');
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists') || '{}');
+    const recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
+    const myMusic = JSON.parse(localStorage.getItem('myMusic') || '[]');
+    
+    console.log('Favorites:', favorites.length, 'songs');
+    console.log('User Playlists:', Object.keys(playlists).length, 'playlists');
+    console.log('Recently Played:', recentlyPlayed.length, 'songs');
+    console.log('My Music:', myMusic.length, 'songs');
+    
+    favorites.forEach((song, index) => {
+        console.log(`  Favorite ${index + 1}: ${song.name} by ${song.singer}`);
+    });
+    
+    Object.keys(playlists).forEach(playlistName => {
+        console.log(`  Playlist "${playlistName}":`, playlists[playlistName].length, 'songs');
+    });
+}
+
 // Make debug functions globally available
 window.debugDatabase = debugDatabaseState;
 window.testDelete = testDeleteSong;
 window.switchSong = testSwitchSong;
+window.testDropdown = testDropdownFunctions;
+window.testPlaylists = testPlaylistStorage;
     
