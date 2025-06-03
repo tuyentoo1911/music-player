@@ -148,13 +148,32 @@
     <div class="dashboard">
       <!-- Header -->
       <header>
-        <h4>Now playing:</h4>
-        <h2>String 57th & 9th</h2>
+        <div class="header-content">
+          <div class="header-text">
+            <h4>Now playing:</h4>
+            <h2>ERROR</h2>
+          </div>
+          <div class="dashboard-menu">
+            <button class="menu-dots-btn" id="dashboard-menu-btn">
+              <i class="fas fa-ellipsis-h"></i>
+            </button>
+            <div class="dashboard-dropdown" id="dashboard-dropdown">
+              <div class="dropdown-item" id="upload-song">
+                <i class="fas fa-upload"></i>
+                <span>Tải bài hát lên</span>
+              </div>
+              <div class="dropdown-item" id="like-song">
+                <i class="fas fa-heart"></i>
+                <span>Yêu thích</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </header>
 
       <!-- CD -->
       <div class="cd">
-        <div class="cd-thumb" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
+        <div class="cd-thumb" style="background-image: url('')">
         </div>
       </div>
 
@@ -181,6 +200,9 @@
       <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
 
       <audio id="audio" src=""></audio>
+
+      <!-- Hidden file input for upload -->
+      <input type="file" id="song-upload-input" accept="audio/*" style="display: none;">
     </div>
 
     <!-- Playlist -->
@@ -188,6 +210,112 @@
       <div class="playlist-header">Now Playing</div>
       
       <!-- Song cards will be rendered here by JavaScript -->
+    </div>
+  </div>
+
+  <!-- Upload Song Modal -->
+  <div class="upload-modal-overlay" id="upload-modal">
+    <div class="upload-modal">
+      <div class="upload-modal-header">
+        <h3>Tải bài hát lên</h3>
+        <button class="modal-close-btn" id="close-upload-modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="upload-modal-body">
+        <form id="upload-song-form" enctype="multipart/form-data">
+          <!-- Audio File Section -->
+          <div class="upload-section">
+            <label class="upload-label">
+              <i class="fas fa-music"></i>
+              <span>Chọn file âm thanh *</span>
+            </label>
+            <div class="file-input-container">
+              <input type="file" id="audio-file-input" accept="audio/*" required>
+              <div class="file-input-display" id="audio-file-display">
+                <i class="fas fa-upload"></i>
+                <span>Chọn file MP3, WAV, M4A...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image File Section -->
+          <div class="upload-section">
+            <label class="upload-label">
+              <i class="fas fa-image"></i>
+              <span>Chọn ảnh bìa</span>
+            </label>
+            <div class="image-upload-container">
+              <input type="file" id="image-file-input" accept="image/*">
+              <div class="image-preview" id="image-preview">
+                <div class="image-placeholder">
+                  <i class="fas fa-camera"></i>
+                  <span>Chọn ảnh bìa bài hát</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Song Details Section -->
+          <div class="upload-section">
+            <div class="input-group">
+              <label for="song-name-input">
+                <i class="fas fa-music"></i>
+                <span>Tên bài hát *</span>
+              </label>
+              <input type="text" id="song-name-input" placeholder="Nhập tên bài hát" required>
+            </div>
+            
+            <div class="input-group">
+              <label for="artist-name-input">
+                <i class="fas fa-user"></i>
+                <span>Tên ca sĩ *</span>
+              </label>
+              <input type="text" id="artist-name-input" placeholder="Nhập tên ca sĩ" required>
+            </div>
+            
+            <div class="input-group">
+              <label for="genre-input">
+                <i class="fas fa-tags"></i>
+                <span>Thể loại</span>
+              </label>
+              <select id="genre-input">
+                <option value="">Chọn thể loại</option>
+                <option value="Pop">Pop</option>
+                <option value="Rock">Rock</option>
+                <option value="Hip-Hop">Hip-Hop</option>
+                <option value="Jazz">Jazz</option>
+                <option value="Classical">Classical</option>
+                <option value="Electronic">Electronic</option>
+                <option value="R&B">R&B</option>
+                <option value="Country">Country</option>
+                <option value="Folk">Folk</option>
+                <option value="Alternative">Alternative</option>
+                <option value="K-Pop">K-Pop</option>
+                <option value="V-Pop">V-Pop</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Upload Progress -->
+          <div class="upload-progress" id="upload-progress" style="display: none;">
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            <span class="progress-text" id="progress-text">Đang tải lên... 0%</span>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="upload-modal-actions">
+            <button type="button" class="cancel-upload-btn" id="cancel-upload">Hủy</button>
+            <button type="submit" class="submit-upload-btn" id="submit-upload">
+              <i class="fas fa-upload"></i>
+              <span>Tải lên</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
