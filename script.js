@@ -223,50 +223,46 @@ const app = {
             const isUserUploaded = song.dbType === 'uploaded' || song.type === 'uploaded';
             
             return `
-            <div class="song-card" data-index="${index}">
+            <div class="song-card ${isUserUploaded ? 'user-uploaded' : ''}" data-index="${index}">
                 <div class="song-header">
-                    <div class="song-artwork" style="background-image: url('${song.image}')"></div>
+                    <div class="song-artwork-container">
+                        <div class="song-artwork" style="background-image: url('${song.image}')"></div>
+                        ${isUserUploaded ? '<div class="upload-indicator"><i class="fas fa-upload"></i></div>' : ''}
+                    </div>
                     <div class="song-info">
                         <div class="song-title">
                             ${song.name}
                             ${isFirst ? '<button class="follow-btn">FOLLOW</button>' : ''}
                         </div>
                         <div class="song-artist">${song.singer}</div>
+                        ${song.duration ? `<div class="song-duration">
+                            <i class="fas fa-clock"></i>
+                            ${song.duration}
+                        </div>` : ''}
                     </div>
                     <div class="song-actions">
-                        <button class="action-btn play-count">
-                            <i class="fas fa-play"></i>
-                            <span>${Math.floor(Math.random() * 1000)}</span>
+                        <button class="action-btn heart-btn ${isFavorite ? 'active' : ''}" data-song-index="${index}" title="${isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}">
+                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
                         </button>
-                        <button class="action-btn">
-                            <i class="fas fa-share"></i>
+                        <button class="action-btn share-btn" data-song-index="${index}" title="Chia sẻ">
+                            <i class="fas fa-share-alt"></i>
                         </button>
-                        <div class="song-menu-container">
-                            <button class="action-btn song-menu-btn" data-song-index="${index}">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </button>
-                            <div class="song-dropdown" id="song-dropdown-${index}">
-                                <div class="dropdown-item song-favorite-btn ${isFavorite ? 'active' : ''}" data-song-index="${index}">
-                                    <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
-                                    <span>${isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}</span>
-                                </div>
-                                <div class="dropdown-item song-add-playlist-btn" data-song-index="${index}">
-                                    <i class="fas fa-plus"></i>
-                                    <span>Thêm vào playlist</span>
-                                </div>
-                                ${isUserUploaded ? `
-                                <div class="dropdown-item song-delete-btn" data-song-index="${index}">
-                                    <i class="fas fa-trash"></i>
-                                    <span>Xóa bài hát</span>
-                                </div>` : ''}
-                            </div>
-                        </div>
+                        <button class="action-btn download-btn" data-song-index="${index}" title="Tải xuống">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn playlist-btn" data-song-index="${index}" title="Thêm vào playlist">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        ${isUserUploaded ? `
+                        <button class="action-btn delete-btn" data-song-index="${index}" title="Xóa bài hát">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
                     </div>
                 </div>
                 
                 <div class="waveform-section">
                     <div class="waveform-controls">
-                        <button class="song-play-btn">
+                        <button class="song-play-btn" data-song-index="${index}">
                             <i class="fas fa-play"></i>
                         </button>
                         <div class="waveform-container">
@@ -278,11 +274,20 @@ const app = {
                 </div>
                 
                 <div class="song-tags">
-                    <span class="song-tag">Music</span>
-                    ${index === 1 ? '<span class="song-tag">pop</span>' : ''}
-                    ${index === 2 ? '<span class="song-tag">Podcast</span>' : ''}
+                    <span class="song-tag primary">
+                        <i class="fas fa-music"></i>
+                        Music
+                    </span>
+                    ${song.category && song.category !== 'Unknown' ? `<span class="song-tag category">
+                        <i class="fas fa-tags"></i>
+                        ${song.category}
+                    </span>` : ''}
+                    ${isUserUploaded ? `<span class="song-tag user-upload">
+                        <i class="fas fa-user"></i>
+                        Bài hát của bạn
+                    </span>` : ''}
+                    ${index === 1 ? '<span class="song-tag trending"><i class="fas fa-fire"></i> Trending</span>' : ''}
                     ${isFavorite ? '<span class="song-tag favorite"><i class="fas fa-heart"></i> Yêu thích</span>' : ''}
-                    ${isUserUploaded ? '<span class="song-tag user-upload"><i class="fas fa-user"></i> Bài hát của bạn</span>' : ''}
                 </div>
             </div>
             `
@@ -379,34 +384,43 @@ const app = {
             }
         });
 
-        // Initialize song menu dropdowns
-        this.initializeSongMenus();
+        // Initialize action button event listeners  
+        this.initializeActionButtons();
     },
 
-    // Initialize song menu dropdowns
-    initializeSongMenus: function() {
+    // Initialize action button event listeners  
+    initializeActionButtons: function() {
         const _this = this;
         
-        // Song menu button clicks
-        $$('.song-menu-btn').forEach(btn => {
+        // Heart/favorite buttons
+        $$('.heart-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const songIndex = parseInt(btn.dataset.songIndex);
-                _this.toggleSongDropdown(songIndex);
+                _this.toggleSongFavoriteNew(songIndex);
             });
         });
 
-        // Song favorite buttons
-        $$('.song-favorite-btn').forEach(btn => {
+        // Share buttons
+        $$('.share-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const songIndex = parseInt(btn.dataset.songIndex);
-                _this.toggleSongFavorite(songIndex);
+                _this.shareSong(songIndex);
             });
         });
 
-        // Song add to playlist buttons
-        $$('.song-add-playlist-btn').forEach(btn => {
+        // Download buttons
+        $$('.download-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const songIndex = parseInt(btn.dataset.songIndex);
+                _this.downloadSong(songIndex);
+            });
+        });
+
+        // Playlist buttons
+        $$('.playlist-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const songIndex = parseInt(btn.dataset.songIndex);
@@ -414,50 +428,29 @@ const app = {
             });
         });
 
-        // Song delete buttons
-        $$('.song-delete-btn').forEach(btn => {
+        // Delete buttons
+        $$('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const songIndex = parseInt(btn.dataset.songIndex);
                 _this.confirmDeleteSong(songIndex);
             });
         });
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.song-menu-container')) {
-                $$('.song-dropdown').forEach(dropdown => {
-                    dropdown.classList.remove('show');
-                });
-            }
-        });
     },
 
-    // Toggle song dropdown menu
-    toggleSongDropdown: function(songIndex) {
-        // Close all other dropdowns
-        $$('.song-dropdown').forEach((dropdown, index) => {
-            if (index !== songIndex) {
-                dropdown.classList.remove('show');
-            }
-        });
-
-        // Toggle current dropdown
-        const dropdown = document.getElementById(`song-dropdown-${songIndex}`);
-        if (dropdown) {
-            dropdown.classList.toggle('show');
-        }
-    },
-
-    // Toggle song favorite
-    async toggleSongFavorite(songIndex) {
+    // New toggle favorite function without re-rendering
+    async toggleSongFavoriteNew(songIndex) {
         const song = this.songs[songIndex];
         if (!song) return;
 
         try {
+            const heartBtn = document.querySelector(`.heart-btn[data-song-index="${songIndex}"]`);
+            const icon = heartBtn.querySelector('i');
+            const favoriteTag = document.querySelector(`[data-index="${songIndex}"] .song-tag.favorite`);
+            
             let isFavorite = false;
             
-            // Check current favorite status
+            // Check current favorite status and toggle
             if (this.isDatabaseOperational() && song.dbId) {
                 const songId = song.dbId;
                 const songType = song.dbType || 'original';
@@ -483,20 +476,150 @@ const app = {
                 }
             }
             
-            // Update dropdown icon based on new status
-            this.updateFavoriteButtonInDropdown(songIndex);
-            
-            // Close dropdown
-            this.toggleSongDropdown(songIndex);
+            // Update button UI based on new status
+            const newFavoriteStatus = !isFavorite;
+            if (newFavoriteStatus) {
+                icon.className = 'fas fa-heart';
+                heartBtn.classList.add('active');
+                heartBtn.title = 'Bỏ yêu thích';
+                
+                // Add favorite tag if not exists
+                if (!favoriteTag) {
+                    const tagsContainer = document.querySelector(`[data-index="${songIndex}"] .song-tags`);
+                    if (tagsContainer) {
+                        const newTag = document.createElement('span');
+                        newTag.className = 'song-tag favorite';
+                        newTag.innerHTML = '<i class="fas fa-heart"></i> Yêu thích';
+                        tagsContainer.appendChild(newTag);
+                    }
+                }
+            } else {
+                icon.className = 'far fa-heart';
+                heartBtn.classList.remove('active');
+                heartBtn.title = 'Yêu thích';
+                
+                // Remove favorite tag if exists
+                if (favoriteTag) {
+                    favoriteTag.remove();
+                }
+            }
             
             // Update dashboard like button if this is the current song
             if (songIndex === this.currentIndex && typeof updateLikeButton === 'function') {
                 setTimeout(updateLikeButton, 100);
             }
-            
+             
         } catch (error) {
             console.error('Error toggling favorite:', error);
             showNotification('❌ Có lỗi xảy ra khi thao tác yêu thích!', 'error');
+        }
+    },
+
+    // Share song functionality
+    shareSong: function(songIndex) {
+        const song = this.songs[songIndex];
+        if (!song) return;
+
+        // Check if Web Share API is supported
+        if (navigator.share) {
+            navigator.share({
+                title: song.name,
+                text: `Nghe "${song.name}" by ${song.singer}`,
+                url: window.location.href
+            }).then(() => {
+                showNotification('🔗 Đã chia sẻ bài hát!', 'success');
+            }).catch((error) => {
+                console.log('Error sharing:', error);
+                this.fallbackShare(song);
+            });
+        } else {
+            this.fallbackShare(song);
+        }
+    },
+
+    // Fallback share functionality
+    fallbackShare: function(song) {
+        // Copy to clipboard
+        const shareText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareText).then(() => {
+                showNotification('📋 Đã sao chép link chia sẻ!', 'success');
+            }).catch(() => {
+                this.showShareModal(song);
+            });
+        } else {
+            this.showShareModal(song);
+        }
+    },
+
+    // Show share modal
+    showShareModal: function(song) {
+        const shareText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
+        
+        const modal = document.createElement('div');
+        modal.className = 'share-modal-overlay';
+        modal.innerHTML = `
+            <div class="share-modal">
+                <div class="share-modal-header">
+                    <h3>Chia sẻ bài hát</h3>
+                    <button class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="share-modal-body">
+                    <div class="song-share-info">
+                        <img src="${song.image}" alt="${song.name}">
+                        <div>
+                            <h4>${song.name}</h4>
+                            <p>${song.singer}</p>
+                        </div>
+                    </div>
+                    <textarea readonly class="share-text">${shareText}</textarea>
+                    <button class="copy-btn" onclick="navigator.clipboard.writeText('${shareText}').then(() => showNotification('📋 Đã sao chép!', 'success'))">
+                        <i class="fas fa-copy"></i>
+                        Sao chép
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 100);
+
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.remove(), 300);
+            }
+        });
+    },
+
+    // Download song functionality
+    downloadSong: function(songIndex) {
+        const song = this.songs[songIndex];
+        if (!song) return;
+
+        try {
+            // Create download link
+            const link = document.createElement('a');
+            link.href = song.music;
+            link.download = `${song.name} - ${song.singer}.mp3`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`⬇️ Đang tải xuống "${song.name}"`, 'success');
+        } catch (error) {
+            console.error('Download error:', error);
+            showNotification('❌ Không thể tải xuống bài hát này!', 'error');
         }
     },
 
@@ -504,9 +627,6 @@ const app = {
     addSongToPlaylist: function(songIndex) {
         const song = this.songs[songIndex];
         if (!song) return;
-
-        // Close dropdown
-        this.toggleSongDropdown(songIndex);
 
         // Show playlist selection modal
         this.showPlaylistModal(song, songIndex);
@@ -792,9 +912,6 @@ const app = {
     confirmDeleteSong: function(songIndex) {
         const song = this.songs[songIndex];
         if (!song) return;
-
-        // Close dropdown first
-        this.toggleSongDropdown(songIndex);
 
         // Show confirmation dialog
         const confirmDialog = document.createElement('div');
