@@ -448,6 +448,10 @@ const app = {
             const icon = heartBtn.querySelector('i');
             const favoriteTag = document.querySelector(`[data-index="${songIndex}"] .song-tag.favorite`);
             
+            // Add click animation
+            heartBtn.classList.add('clicking');
+            setTimeout(() => heartBtn.classList.remove('clicking'), 400);
+            
             let isFavorite = false;
             
             // Check current favorite status and toggle
@@ -476,33 +480,52 @@ const app = {
                 }
             }
             
-            // Update button UI based on new status
+            // Update button UI based on new status with animation
             const newFavoriteStatus = !isFavorite;
-            if (newFavoriteStatus) {
-                icon.className = 'fas fa-heart';
-                heartBtn.classList.add('active');
-                heartBtn.title = 'Bỏ yêu thích';
-                
-                // Add favorite tag if not exists
-                if (!favoriteTag) {
-                    const tagsContainer = document.querySelector(`[data-index="${songIndex}"] .song-tags`);
-                    if (tagsContainer) {
-                        const newTag = document.createElement('span');
-                        newTag.className = 'song-tag favorite';
-                        newTag.innerHTML = '<i class="fas fa-heart"></i> Yêu thích';
-                        tagsContainer.appendChild(newTag);
+            
+            // Add transition delay for smooth animation
+            setTimeout(() => {
+                if (newFavoriteStatus) {
+                    icon.className = 'fas fa-heart';
+                    heartBtn.classList.add('active');
+                    heartBtn.title = 'Bỏ yêu thích';
+                    
+                    // Trigger floating heart animation
+                    this.createFloatingHearts(heartBtn);
+                    
+                    // Add favorite tag if not exists
+                    if (!favoriteTag) {
+                        const tagsContainer = document.querySelector(`[data-index="${songIndex}"] .song-tags`);
+                        if (tagsContainer) {
+                            const newTag = document.createElement('span');
+                            newTag.className = 'song-tag favorite';
+                            newTag.innerHTML = '<i class="fas fa-heart"></i> Yêu thích';
+                            newTag.style.opacity = '0';
+                            newTag.style.transform = 'scale(0.8)';
+                            tagsContainer.appendChild(newTag);
+                            
+                            // Animate tag appearance
+                            setTimeout(() => {
+                                newTag.style.transition = 'all 0.3s ease';
+                                newTag.style.opacity = '1';
+                                newTag.style.transform = 'scale(1)';
+                            }, 100);
+                        }
+                    }
+                } else {
+                    icon.className = 'far fa-heart';
+                    heartBtn.classList.remove('active');
+                    heartBtn.title = 'Yêu thích';
+                    
+                    // Remove favorite tag with animation if exists
+                    if (favoriteTag) {
+                        favoriteTag.style.transition = 'all 0.3s ease';
+                        favoriteTag.style.opacity = '0';
+                        favoriteTag.style.transform = 'scale(0.8)';
+                        setTimeout(() => favoriteTag.remove(), 300);
                     }
                 }
-            } else {
-                icon.className = 'far fa-heart';
-                heartBtn.classList.remove('active');
-                heartBtn.title = 'Yêu thích';
-                
-                // Remove favorite tag if exists
-                if (favoriteTag) {
-                    favoriteTag.remove();
-                }
-            }
+            }, 200);
             
             // Update dashboard like button if this is the current song
             if (songIndex === this.currentIndex && typeof updateLikeButton === 'function') {
@@ -515,89 +538,398 @@ const app = {
         }
     },
 
+    // Create floating hearts animation
+    createFloatingHearts: function(button) {
+        // Create multiple hearts with different timing
+        const heartCount = 4;
+        const heartSymbols = ['💖', '❤️', '💕', '💗'];
+        
+        for (let i = 0; i < heartCount; i++) {
+            setTimeout(() => {
+                const heart = document.createElement('div');
+                heart.innerHTML = heartSymbols[i % heartSymbols.length];
+                heart.className = 'floating-heart';
+                
+                // Get button position relative to viewport
+                const rect = button.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                
+                // Position heart at button center
+                heart.style.left = (rect.left + scrollLeft + rect.width / 2 - 6) + 'px';
+                heart.style.top = (rect.top + scrollTop - 10) + 'px';
+                
+                // Add random horizontal movement
+                const randomX = (Math.random() - 0.5) * 40;
+                heart.style.setProperty('--random-x', randomX + 'px');
+                
+                // Custom animation with random movement
+                heart.style.animation = `floatingHeartEffect 1.5s ease-out forwards`;
+                heart.style.transform = `translateX(${randomX}px)`;
+                
+                document.body.appendChild(heart);
+                
+                // Clean up after animation
+                setTimeout(() => {
+                    if (heart.parentNode) {
+                        heart.parentNode.removeChild(heart);
+                    }
+                }, 1600);
+            }, i * 150);
+        }
+        
+        // Add particle effect to the button itself
+        const button_rect = button.getBoundingClientRect();
+        this.createHeartParticles(button_rect);
+    },
+
+    // Create heart particles around the button
+    createHeartParticles: function(buttonRect) {
+        const particleCount = 6;
+        const particles = ['✨', '💫', '⭐', '💝'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.innerHTML = particles[Math.floor(Math.random() * particles.length)];
+                particle.style.position = 'absolute';
+                particle.style.fontSize = '10px';
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '999';
+                particle.style.color = '#ff6b9d';
+                
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                
+                // Random position around button
+                const angle = (i / particleCount) * Math.PI * 2;
+                const radius = 30 + Math.random() * 20;
+                const x = buttonRect.left + scrollLeft + buttonRect.width / 2 + Math.cos(angle) * radius;
+                const y = buttonRect.top + scrollTop + buttonRect.height / 2 + Math.sin(angle) * radius;
+                
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.transition = 'all 1s ease-out';
+                particle.style.opacity = '1';
+                particle.style.transform = 'scale(0.5)';
+                
+                document.body.appendChild(particle);
+                
+                // Animate particle
+                setTimeout(() => {
+                    particle.style.opacity = '0';
+                    particle.style.transform = `scale(0) translateY(-40px) translateX(${(Math.random() - 0.5) * 30}px)`;
+                }, 100);
+                
+                // Remove particle
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1100);
+            }, i * 100);
+        }
+    },
+
     // Share song functionality
     shareSong: function(songIndex) {
         const song = this.songs[songIndex];
         if (!song) return;
 
-        // Check if Web Share API is supported
-        if (navigator.share) {
-            navigator.share({
-                title: song.name,
-                text: `Nghe "${song.name}" by ${song.singer}`,
-                url: window.location.href
-            }).then(() => {
-                showNotification('🔗 Đã chia sẻ bài hát!', 'success');
-            }).catch((error) => {
-                console.log('Error sharing:', error);
-                this.fallbackShare(song);
-            });
-        } else {
-            this.fallbackShare(song);
-        }
+        // Show enhanced share modal with editing capability
+        this.showEnhancedShareModal(song);
     },
 
-    // Fallback share functionality
-    fallbackShare: function(song) {
-        // Copy to clipboard
-        const shareText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
-        
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(shareText).then(() => {
-                showNotification('📋 Đã sao chép link chia sẻ!', 'success');
-            }).catch(() => {
-                this.showShareModal(song);
-            });
-        } else {
-            this.showShareModal(song);
-        }
-    },
-
-    // Show share modal
-    showShareModal: function(song) {
-        const shareText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
+    // Enhanced share modal with link editing
+    showEnhancedShareModal: function(song) {
+        const defaultShareText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
         
         const modal = document.createElement('div');
         modal.className = 'share-modal-overlay';
         modal.innerHTML = `
-            <div class="share-modal">
+            <div class="share-modal enhanced">
                 <div class="share-modal-header">
-                    <h3>Chia sẻ bài hát</h3>
+                    <h3>
+                        <i class="fas fa-share-alt"></i>
+                        Chia sẻ bài hát
+                    </h3>
                     <button class="modal-close-btn">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="share-modal-body">
                     <div class="song-share-info">
-                        <img src="${song.image}" alt="${song.name}">
+                        <img src="${song.image}" alt="${song.name}" onerror="this.src='assets/img/default-song.jpg'">
                         <div>
                             <h4>${song.name}</h4>
                             <p>${song.singer}</p>
+                            ${song.duration ? `<span class="song-duration-share">⏱️ ${song.duration}</span>` : ''}
                         </div>
                     </div>
-                    <textarea readonly class="share-text">${shareText}</textarea>
-                    <button class="copy-btn" onclick="navigator.clipboard.writeText('${shareText}').then(() => showNotification('📋 Đã sao chép!', 'success'))">
+                    
+                    <div class="share-options">
+                        <div class="share-tab-buttons">
+                            <button class="share-tab-btn active" data-tab="text">
+                                <i class="fas fa-edit"></i>
+                                Chỉnh sửa text
+                            </button>
+                            <button class="share-tab-btn" data-tab="quick">
+                                <i class="fas fa-zap"></i>
+                                Chia sẻ nhanh
+                            </button>
+                        </div>
+                        
+                        <div class="share-tab-content">
+                            <div class="share-tab-panel active" id="text-tab">
+                                <div class="input-group">
+                                    <label>
+                                        <i class="fas fa-music"></i>
+                                        Tên bài hát
+                                    </label>
+                                    <input type="text" class="share-input" id="share-song-name" value="${song.name}">
+                                </div>
+                                <div class="input-group">
+                                    <label>
+                                        <i class="fas fa-user"></i>
+                                        Ca sĩ
+                                    </label>
+                                    <input type="text" class="share-input" id="share-artist-name" value="${song.singer}">
+                                </div>
+                                <div class="input-group">
+                                    <label>
+                                        <i class="fas fa-link"></i>
+                                        Link chia sẻ
+                                    </label>
+                                    <input type="text" class="share-input" id="share-custom-link" value="${window.location.href}" placeholder="Nhập link tùy chỉnh...">
+                                </div>
+                                <div class="input-group">
+                                    <label>
+                                        <i class="fas fa-comment"></i>
+                                        Tin nhắn tùy chỉnh
+                                    </label>
+                                    <textarea class="share-textarea" id="share-custom-message" placeholder="Thêm tin nhắn cá nhân...">${defaultShareText}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="share-tab-panel" id="quick-tab">
+                                <div class="quick-share-buttons">
+                                    <button class="quick-share-btn" data-type="web-share">
+                                        <i class="fas fa-share"></i>
+                                        Chia sẻ hệ thống
+                                    </button>
+                                    <button class="quick-share-btn" data-type="copy-link">
+                                        <i class="fas fa-copy"></i>
+                                        Sao chép link
+                                    </button>
+                                    <button class="quick-share-btn" data-type="copy-text">
+                                        <i class="fas fa-clipboard"></i>
+                                        Sao chép text
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="share-preview">
+                        <label>
+                            <i class="fas fa-eye"></i>
+                            Xem trước
+                        </label>
+                        <div class="share-preview-content" id="share-preview"></div>
+                    </div>
+                </div>
+                
+                <div class="share-modal-actions">
+                    <button class="cancel-share-btn">
+                        <i class="fas fa-times"></i>
+                        Hủy
+                    </button>
+                    <button class="copy-share-btn">
                         <i class="fas fa-copy"></i>
                         Sao chép
+                    </button>
+                    <button class="send-share-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Chia sẻ
                     </button>
                 </div>
             </div>
         `;
 
         document.body.appendChild(modal);
+        
+        // Initialize share modal functionality
+        this.initializeShareModal(modal, song);
+        
         setTimeout(() => modal.classList.add('show'), 100);
+    },
 
-        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
-            modal.classList.remove('show');
-            setTimeout(() => modal.remove(), 300);
+    // Initialize share modal functionality
+    initializeShareModal: function(modal, song) {
+        const _this = this;
+        
+        // Tab switching
+        const tabButtons = modal.querySelectorAll('.share-tab-btn');
+        const tabPanels = modal.querySelectorAll('.share-tab-panel');
+        
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                modal.querySelector(`#${tabId}-tab`).classList.add('active');
+            });
         });
-
+        
+        // Update preview when inputs change
+        const inputs = modal.querySelectorAll('.share-input, .share-textarea');
+        const updatePreview = () => {
+            const songName = modal.querySelector('#share-song-name').value;
+            const artistName = modal.querySelector('#share-artist-name').value;
+            const customLink = modal.querySelector('#share-custom-link').value;
+            const customMessage = modal.querySelector('#share-custom-message').value;
+            
+            const preview = modal.querySelector('#share-preview');
+            const previewText = customMessage || `Nghe "${songName}" by ${artistName} - ${customLink}`;
+            preview.textContent = previewText;
+        };
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+        
+        // Initial preview update
+        updatePreview();
+        
+        // Quick share buttons
+        const quickShareButtons = modal.querySelectorAll('.quick-share-btn');
+        quickShareButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.type;
+                _this.handleQuickShare(type, song, modal);
+            });
+        });
+        
+        // Modal action buttons
+        const cancelBtn = modal.querySelector('.cancel-share-btn');
+        const copyBtn = modal.querySelector('.copy-share-btn');
+        const sendBtn = modal.querySelector('.send-share-btn');
+        
+        cancelBtn.addEventListener('click', () => {
+            _this.closeShareModal(modal);
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            _this.copyShareContent(modal);
+        });
+        
+        sendBtn.addEventListener('click', () => {
+            _this.sendShare(modal, song);
+        });
+        
+        // Close modal
+        const closeBtn = modal.querySelector('.modal-close-btn');
+        closeBtn.addEventListener('click', () => {
+            _this.closeShareModal(modal);
+        });
+        
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                modal.classList.remove('show');
-                setTimeout(() => modal.remove(), 300);
+                _this.closeShareModal(modal);
             }
         });
+    },
+
+    // Handle quick share actions
+    handleQuickShare: function(type, song, modal) {
+        switch (type) {
+            case 'web-share':
+                if (navigator.share) {
+                    navigator.share({
+                        title: song.name,
+                        text: `Nghe "${song.name}" by ${song.singer}`,
+                        url: window.location.href
+                    }).then(() => {
+                        showNotification('🔗 Đã chia sẻ bài hát!', 'success');
+                        this.closeShareModal(modal);
+                    }).catch((error) => {
+                        console.log('Error sharing:', error);
+                        showNotification('❌ Không thể chia sẻ qua hệ thống!', 'error');
+                    });
+                } else {
+                    showNotification('❌ Trình duyệt không hỗ trợ chia sẻ hệ thống!', 'error');
+                }
+                break;
+                
+            case 'copy-link':
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showNotification('📋 Đã sao chép link!', 'success');
+                }).catch(() => {
+                    showNotification('❌ Không thể sao chép link!', 'error');
+                });
+                break;
+                
+            case 'copy-text':
+                const defaultText = `Nghe "${song.name}" by ${song.singer} - ${window.location.href}`;
+                navigator.clipboard.writeText(defaultText).then(() => {
+                    showNotification('📋 Đã sao chép text chia sẻ!', 'success');
+                }).catch(() => {
+                    showNotification('❌ Không thể sao chép text!', 'error');
+                });
+                break;
+        }
+    },
+
+    // Copy share content from modal
+    copyShareContent: function(modal) {
+        const preview = modal.querySelector('#share-preview');
+        const textToCopy = preview.textContent;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showNotification('📋 Đã sao chép nội dung chia sẻ!', 'success');
+        }).catch(() => {
+            showNotification('❌ Không thể sao chép nội dung!', 'error');
+        });
+    },
+
+    // Send share content
+    sendShare: function(modal, song) {
+        const preview = modal.querySelector('#share-preview');
+        const shareText = preview.textContent;
+        
+        if (navigator.share) {
+            const songName = modal.querySelector('#share-song-name').value;
+            const customLink = modal.querySelector('#share-custom-link').value;
+            
+            navigator.share({
+                title: songName,
+                text: shareText,
+                url: customLink
+            }).then(() => {
+                showNotification('🔗 Đã chia sẻ thành công!', 'success');
+                this.closeShareModal(modal);
+            }).catch((error) => {
+                console.log('Error sharing:', error);
+                // Fallback to copy
+                this.copyShareContent(modal);
+            });
+        } else {
+            // Fallback to copy
+            this.copyShareContent(modal);
+        }
+    },
+
+    // Close share modal
+    closeShareModal: function(modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
     },
 
     // Download song functionality
