@@ -1,0 +1,139 @@
+/* Heart button specific styles with animations */
+.action-btn.heart-btn {
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.action-btn.heart-btn:hover {
+  background: rgba(236, 31, 85, 0.15);
+  color: var(--primary-color);
+  transform: translateY(-2px) scale(1.1);
+}
+
+.action-btn.heart-btn.active {
+  background: rgba(236, 31, 85, 0.2);
+  color: var(--primary-color);
+  border: 1px solid rgba(236, 31, 85, 0.3);
+  animation: heartBeat 0.6s ease-in-out;
+}
+
+.action-btn.heart-btn.active:hover {
+  background: rgba(236, 31, 85, 0.3);
+  transform: translateY(-2px) scale(1.15);
+  box-shadow: 0 8px 25px rgba(236, 31, 85, 0.4);
+}
+
+.action-btn.heart-btn.active i {
+  animation: heartPulse 1.5s ease-in-out infinite;
+}
+
+/* Heart animations */
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Heart click animation */
+.action-btn.heart-btn.clicking {
+  animation: heartClick 0.4s ease-out;
+}
+
+@keyframes heartClick {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  75% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Floating hearts animation - global class for any element */
+.floating-heart {
+  position: absolute;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 1001;
+  font-weight: bold;
+  animation: floatingHeartEffect 1.5s ease-out forwards;
+  text-shadow: 0 0 10px rgba(236, 31, 85, 0.5);
+}
+
+@keyframes floatingHeartEffect {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.3);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-15px) scale(1.2);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-30px) scale(1);
+  }
+  75% {
+    opacity: 0.6;
+    transform: translateY(-45px) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.2);
+  }
+}
+
+/* Heart particles animation */
+.heart-particle {
+  position: absolute;
+  font-size: 10px;
+  pointer-events: none;
+  z-index: 1000;
+  animation: particleFloat 1s ease-out forwards;
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(360deg) translateY(-30px);
+  }
+} 

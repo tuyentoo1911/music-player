@@ -1,11 +1,24 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Music player</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/styles.css">
-<link rel="stylesheet" href="assets/css/sidebar.css">
-<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- CSS Files organized by functionality -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/uiux.css">
+    <link rel="stylesheet" href="assets/css/musicPlayer.css">
+    <link rel="stylesheet" href="assets/css/playlist.css">
+    <link rel="stylesheet" href="assets/css/favorites.css">
+    <link rel="stylesheet" href="assets/css/modals.css">
+    <link rel="stylesheet" href="assets/css/notifications.css">
+    <link rel="stylesheet" href="assets/css/sidebar.css">
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+</head>
+<body>
 
 <!-- Dynamic Background -->
 <div class="dynamic-background" id="dynamic-background">
@@ -376,7 +389,8 @@
 
 <!-- Scripts -->
 <script src="assets/js/sidebar.js"></script>
-<script src="script.js"></script>
+<script src="assets/js/database.js"></script>
+<script type="module" src="main.js"></script>
 
 </body>
 </html>

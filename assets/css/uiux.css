@@ -1,0 +1,252 @@
+/* Dynamic Background */
+.dynamic-background {
+  position: fixed;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  width: calc(100% + 40px);
+  height: calc(100% + 40px);
+  z-index: -1;
+  overflow: hidden;
+  background: #1a1a2e; 
+}
+
+.background-image {
+  position: absolute;
+  top: -5%;
+  left: -5%;
+  width: 110%;
+  height: 110%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1a1a2e; 
+  filter: blur(10px) brightness(0.4) saturate(1.2);
+  transform: scale(1.05);
+  transition: opacity 0.8s ease-in-out;
+  opacity: 0;
+  z-index: 1;
+}
+
+.background-image.active {
+  opacity: 1;
+}
+
+#background-image-1 {
+  z-index: 1;
+}
+
+#background-image-2 {
+  z-index: 2;
+}
+
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 30, 0.75) 0%,
+    rgba(30, 30, 30, 0.65) 30%,
+    rgba(30, 30, 30, 0.7) 70%,
+    rgba(30, 30, 30, 0.8) 100%
+  );
+  backdrop-filter: blur(3px);
+  z-index: 3;
+}
+
+/* Menu Toggle */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(236, 31, 85, 0.4);
+  transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+  background: #d91e50;
+  transform: scale(1.05);
+}
+
+/* Collapsed sidebar state */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  padding: 20px 10px;
+}
+
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .auth-section,
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .premium-card {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 10px;
+}
+
+.sidebar.collapsed .nav-item i {
+  margin: 0;
+}
+
+.sidebar.collapsed .sidebar-toggle i {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed + .main-content {
+  margin-left: 80px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    padding: 0 10px;
+  }
+  
+  .player {
+    margin: 0;
+    padding: 0 10px;
+    max-width: 100%;
+  }
+  
+  .dashboard {
+    margin: 10px auto;
+    padding: 15px;
+    max-width: 100%;
+  }
+  
+  .playlist {
+    padding: 0 10px 20px;
+  }
+  
+  .song-card {
+    padding: 15px;
+  }
+  
+  .song-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .song-artwork {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .waveform-section {
+    gap: 10px;
+  }
+
+  .waveform-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .waveform-container {
+    width: 100%;
+  }
+
+  .song-info {
+    text-align: center;
+  }
+
+  .waveform-time {
+    font-size: 11px;
+    margin-top: 5px;
+  }
+}
+
+/* Bottom player responsive */
+@media (max-width: 768px) {
+  .bottom-player {
+    flex-direction: column;
+    height: auto;
+    padding: 15px 10px;
+    gap: 15px;
+    justify-content: center;
+  }
+  
+  .player-controls {
+    order: -1;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .control-buttons {
+    justify-content: center;
+  }
+  
+  .player-song-info {
+    min-width: auto;
+    max-width: 100%;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .player-actions {
+    min-width: auto;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .volume-control {
+    order: -1;
+  }
+
+  body.bottom-player-active {
+    padding-bottom: 140px;
+  }
+}
+
+/* Tablet view */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 280px;
+  }
+  
+  .main-content {
+    margin-left: 280px;
+  }
+  
+  .sidebar.collapsed + .main-content {
+    margin-left: 80px;
+  }
+}
+
+/* Large desktop view */
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 350px;
+  }
+  
+  .main-content {
+    margin-left: 350px;
+  }
+  
+  .sidebar.collapsed + .main-content {
+    margin-left: 80px;
+  }
+} 
