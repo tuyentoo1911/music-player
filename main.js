@@ -391,14 +391,23 @@ const app = {
             });
         });
 
-        // Delete buttons
+        // Delete buttons (chỉ cho bài hát uploaded)
         $$('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const songIndex = parseInt(btn.dataset.songIndex);
-                _this.confirmDeleteSong(songIndex);
+                const song = _this.songs[songIndex];
+                
+                // Kiểm tra xem có phải bài hát uploaded không
+                if (song && (song.dbType === 'uploaded' || song.type === 'uploaded')) {
+                    console.log('Delete button clicked for song:', song.name);
+                    _this.confirmDeleteSong(songIndex);
+                } else {
+                    console.warn('Attempted to delete non-uploaded song');
+                }
             });
         });
+
     },
 
     // Start the app
@@ -729,7 +738,7 @@ const app = {
                     music: audioURL,
                     duration: '00:00',
                     category: 'Unknown',
-                    type: 'uploaded'
+                    dbType: 'uploaded'
                 };
                 
                 const songId = await addUploadedSongToDatabase(file, audioURL, song);

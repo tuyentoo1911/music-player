@@ -139,7 +139,7 @@ async function handleUploadFormSubmit(event) {
             music: audioUrl,
             duration: '00:00',
             category: genre || 'Unknown',
-            type: 'uploaded'
+            dbType: 'uploaded'
         };
         
         // Thêm vào database và playlist (với xử lý lỗi nâng cao và fallback)
@@ -180,8 +180,8 @@ function showUploadProgress() {
 function hideUploadProgress() {
     const progressSection = document.getElementById('upload-progress');
     const submitBtn = document.getElementById('submit-upload');
-    const progressBar = document.getElementById('upload-progress-bar');
-    const progressText = document.getElementById('upload-progress-text');
+    const progressBar = document.getElementById('progress-bar-fill');
+    const progressText = document.getElementById('progress-text');
     
     if (progressSection) {
         progressSection.style.display = 'none';
@@ -191,7 +191,7 @@ function hideUploadProgress() {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
             <i class="fas fa-upload"></i>
-            Tải lên bài hát
+            <span>Tải lên</span>
         `;
     }
     
@@ -208,8 +208,13 @@ function hideUploadProgress() {
 // Mô phỏng tiến trình tải lên
 function simulateUploadProgress() {
     return new Promise((resolve) => {
-        const progressBar = document.getElementById('upload-progress-bar');
-        const progressText = document.getElementById('upload-progress-text');
+        const progressBar = document.getElementById('progress-bar-fill');
+        const progressText = document.getElementById('progress-text');
+        
+        console.log('Progress elements found:', {
+            progressBar: !!progressBar,
+            progressText: !!progressText
+        });
         
         let progress = 0;
         const interval = setInterval(() => {
@@ -219,14 +224,25 @@ function simulateUploadProgress() {
                 progress = 100;
                 clearInterval(interval);
                 
-                if (progressBar) progressBar.style.width = '100%';
-                if (progressText) progressText.textContent = '100%';
+                if (progressBar) {
+                    progressBar.style.width = '100%';
+                    console.log('Progress bar set to 100%');
+                }
+                if (progressText) {
+                    progressText.textContent = '100%';
+                    console.log('Progress text set to 100%');
+                }
                 
                 // Hoàn tất sau một chút delay
                 setTimeout(resolve, 500);
             } else {
-                if (progressBar) progressBar.style.width = progress + '%';
-                if (progressText) progressText.textContent = Math.round(progress) + '%';
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = Math.round(progress) + '%';
+                }
+                console.log('Progress updated:', Math.round(progress) + '%');
             }
         }, 200);
     });
